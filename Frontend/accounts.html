@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Accounts - Payments</title>
+  <link rel="stylesheet" href="css/accounts.css"/>
+</head>
+<body>
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main>
+      <h1>Accounts — Final Payment Process</h1>
+      <ul id="pending-payments"></ul>
+    </main>
+  </div>
+
+  <script>
+    async function load(){
+      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
+      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
+      const res = await fetch('/api/accounts/pending');
+      const items = await res.json();
+      document.getElementById('pending-payments').innerHTML = items.map(i=>`<li>${i.id} - ${i.amount} - <button onclick="pay('${i.id}')">Pay</button></li>`).join('');
+    }
+    async function pay(id){
+      await fetch(`/api/accounts/${id}/pay`, {method:'POST'});
+      load();
+    }
+    load();
+  </script>
+  <script src="js/account.js"></script>
+</body>
+</html>

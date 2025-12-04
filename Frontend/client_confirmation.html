@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Client Confirmation</title>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+</head>
+<body>
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main>
+      <h1>Delivery Confirmation</h1>
+      <ul id="deliveries"></ul>
+    </main>
+  </div>
+
+  <script>
+    async function load(){
+      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
+      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
+      const res = await fetch('/api/client/confirmations');
+      const ds = await res.json();
+      document.getElementById('deliveries').innerHTML = ds.map(d=>`<li>${d.id} - ${d.status} - <button onclick="confirmDelivery('${d.id}')">Confirm</button></li>`).join('');
+    }
+    async function confirmDelivery(id){
+      await fetch(`/api/client/${id}/confirm`,{method:'POST'});
+      load();
+    }
+    load();
+  </script>
+</body>
+</html>

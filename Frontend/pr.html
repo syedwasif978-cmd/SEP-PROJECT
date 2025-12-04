@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PR - Procurement Department</title>
+  <link rel="stylesheet" href="css/pr.css"/>
+</head>
+<body>
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main>
+      <h1>Procurement Department — Recommendations & Approvals</h1>
+      <ul id="pr-list"></ul>
+    </main>
+  </div>
+
+  <script>
+    async function load(){
+      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
+      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
+      const res = await fetch('/api/pr');
+      const prs = await res.json();
+      document.getElementById('pr-list').innerHTML = prs.map(x=>`<li>${x.id} ${x.item} - <button onclick="recommend('${x.id}')">Recommend</button></li>`).join('');
+    }
+    async function recommend(id){
+      await fetch(`/api/pr/${id}/recommend`, {method:'POST'});
+      load();
+    }
+    load();
+  </script>
+  <script src="js/pr.js"></script>
+</body>
+</html>

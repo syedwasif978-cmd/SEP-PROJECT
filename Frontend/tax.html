@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Tax Calculator</title>
+  <link rel="stylesheet" href="css/tax.css"/>
+</head>
+<body>
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main>
+      <h1>FBR Tax & Profit Calculator</h1>
+      <label>Amount: <input type="number" id="amount" /></label>
+      <button id="calc">Calculate</button>
+      <pre id="result"></pre>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('calc').addEventListener('click', async ()=>{
+      const amount = +document.getElementById('amount').value;
+      const res = await fetch('/api/tax/calc', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({amount})});
+      const data = await res.json();
+      document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+    });
+  </script>
+  <script src="js/tax.js"></script>
+</body>
+</html>

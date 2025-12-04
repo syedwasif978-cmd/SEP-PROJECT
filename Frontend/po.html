@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Purchase Orders</title>
+  <link rel="stylesheet" href="css/po.css"/>
+</head>
+<body>
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main>
+      <h1>Create Purchase Order</h1>
+      <form id="po-form">
+        <label>Vendor ID: <input name="vendor_id" required/></label><br/>
+        <label>Items JSON: <textarea name="items" required></textarea></label><br/>
+        <button type="submit">Create PO</button>
+      </form>
+      <div id="po-result"></div>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('po-form').addEventListener('submit', async e=>{
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const body = {vendor_id: fd.get('vendor_id'), items: JSON.parse(fd.get('items'))};
+      const res = await fetch('/api/po', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      document.getElementById('po-result').textContent = 'PO created (sample)';
+    });
+  </script>
+  <script src="js/po.js"></script>
+</body>
+</html>

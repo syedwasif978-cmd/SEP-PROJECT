@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Commercial Approval</title>
+  <link rel="stylesheet" href="css/commercial.css"/>
+</head>
+<body>
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main>
+      <h1>Commercial — PR Approval / Rejection</h1>
+      <ul id="pending-prs"></ul>
+    </main>
+  </div>
+
+  <script>
+  async function load(){
+    document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
+    document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
+    const res = await fetch('/api/commercial/pending');
+    const prs = await res.json();
+    const ul = document.getElementById('pending-prs');
+    ul.innerHTML = prs.map(p=>`<li>${p.id} - ${p.item} - <button onclick="decide('${p.id}', true)">Approve</button> <button onclick="decide('${p.id}', false)">Reject</button></li>`).join('');
+  }
+  async function decide(id, approve){
+    await fetch('/api/commercial/decision',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({pr_id: id, approve})});
+    load();
+  }
+  load();
+  </script>
+  <script src="js/commercial.js"></script>
+</body>
+</html>

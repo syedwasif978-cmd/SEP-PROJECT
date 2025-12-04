@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Warehouse - PR</title>
+  <link rel="stylesheet" href="css/warehouse.css"/>
+</head>
+<body>
+  <!-- Include components -->
+  <div id="app">
+    <!-- header -->
+    <div id="header"></div>
+    <div class="layout">
+      <div id="sidebar"></div>
+      <main>
+        <h1>Warehouse / Start PR</h1>
+        <section id="product-list">
+          <button id="new-pr-btn">Start Purchase Requisition</button>
+          <ul id="items"></ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // load components
+    async function loadComponents(){
+      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
+      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
+    }
+    loadComponents();
+
+    async function fetchItems(){
+      const res = await fetch('/api/warehouse/items');
+      const data = await res.json();
+      const ul = document.getElementById('items');
+      ul.innerHTML = '';
+      data.forEach(i=>{
+        const li = document.createElement('li');
+        li.textContent = `${i.sku} — ${i.name} — qty ${i.qty}`;
+        ul.appendChild(li);
+      });
+    }
+    document.getElementById('new-pr-btn').addEventListener('click', async ()=>{
+      const payload = {item_sku: 'SKU-001', qty: 10, requester: 'user1'};
+      await fetch('/api/pr', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      alert('PR created (sample)');
+    });
+
+    fetchItems();
+  </script>
+  <script src="js/warehouse.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css"/>
+</head>
+<body>
+  <div id="header"></div>
+  <div class="layout">
+    <div id="sidebar"></div>
+    <main>
+      <h1>System Dashboard</h1>
+      <div id="stats"></div>
+    </main>
+  </div>
+
+  <script>
+    async function load(){
+      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
+      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
+      const res = await fetch('/api/dashboard');
+      const data = await res.json();
+      document.getElementById('stats').textContent = JSON.stringify(data, null, 2);
+    }
+    load();
+  </script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+body {font-family: Arial, sans-serif; margin:0;}
+.layout {display:flex;}
+main {padding:20px; flex:1;}
+#sidebar {width:220px; background:#f4f4f4; min-height:100vh;}
+button {padding:6px 10px; margin:6px;}
