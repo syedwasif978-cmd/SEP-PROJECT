@@ -2,40 +2,6 @@
 
 A complete, beginner-friendly procurement management system with backend REST APIs and interactive frontend GUI.
 
-## 🚀 Quick Start (30 seconds)
-
-### Option 1: Automated (Windows)
-```bash
-cd c:\Users\DELL\OneDrive\Desktop\SEP PROJ
-start.cmd
-```
-Then in another terminal:
-```bash
-cd c:\Users\DELL\OneDrive\Desktop\SEP PROJ\Frontend
-C:/Users/DELL/AppData/Local/Python/pythoncore-3.14-64/python.exe -m http.server 5500
-```
-
-### Option 2: Manual Setup
-
-**Terminal 1 (Backend):**
-```bash
-cd c:\Users\DELL\OneDrive\Desktop\SEP PROJ\backend
-C:/Users/DELL/AppData/Local/Python/pythoncore-3.14-64/python.exe -m pip install -r requirements.txt
-cd ..
-C:/Users/DELL/AppData/Local/Python/pythoncore-3.14-64/python.exe init_db.py
-cd backend
-C:/Users/DELL/AppData/Local/Python/pythoncore-3.14-64/python.exe app.py
-```
-
-**Terminal 2 (Frontend):**
-```bash
-cd c:\Users\DELL\OneDrive\Desktop\SEP PROJ\Frontend
-C:/Users/DELL/AppData/Local/Python/pythoncore-3.14-64/python.exe -m http.server 5500
-```
-
-Then open in browser: **http://localhost:5500/dashboard.html**
-
----
 
 ## 📋 System Features
 
