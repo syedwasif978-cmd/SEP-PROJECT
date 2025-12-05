@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Accounts - Payments</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/accounts.css"/>
 </head>
 <body>
@@ -17,15 +20,28 @@
 
   <script>
     async function load(){
-      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
-      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
-      const res = await fetch('/api/accounts/pending');
-      const items = await res.json();
-      document.getElementById('pending-payments').innerHTML = items.map(i=>`<li>${i.id} - ${i.amount} - <button onclick="pay('${i.id}')">Pay</button></li>`).join('');
+      try {
+        document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text()).catch(e=>{console.error('Header load failed:', e); return '';});
+        document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text()).catch(e=>{console.error('Sidebar load failed:', e); return '';});
+        const res = await fetch('/api/accounts/pending');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const items = await res.json();
+        document.getElementById('pending-payments').innerHTML = items.map(i=>`<li>${i.id.substring(0,8)}... - Amount: ${i.amount} - Status: ${i.status} - <button onclick="pay('${i.id}')">Pay</button></li>`).join('');
+      } catch (err) {
+        console.error('Error loading pending payments:', err);
+        document.getElementById('pending-payments').innerHTML = '<li style="color:red;">Error loading pending payments.</li>';
+      }
     }
     async function pay(id){
-      await fetch(`/api/accounts/${id}/pay`, {method:'POST'});
-      load();
+      try {
+        const res = await fetch(`/api/accounts/${id}/pay`, {method:'POST'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alert('Payment marked as paid!');
+        load();
+      } catch (err) {
+        console.error('Payment error:', err);
+        alert('Failed to mark payment: ' + err.message);
+      }
     }
     load();
   </script>

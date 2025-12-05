@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Client Confirmation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css"/>
 </head>
 <body>
@@ -11,22 +13,97 @@
     <div id="sidebar"></div>
     <main>
       <h1>Delivery Confirmation</h1>
-      <ul id="deliveries"></ul>
+        <section class="card" style="margin-bottom:12px">
+          <h3>Create / Edit Confirmation</h3>
+          <form id="confirm-form">
+            <input type="hidden" name="id" />
+            <label>PO ID: <input name="po_id" required/></label>
+            <label>Status: <select name="status"><option value="delivered">delivered</option><option value="confirmed">confirmed</option></select></label>
+            <button type="submit">Save</button>
+            <button type="button" id="confirm-cancel">Cancel</button>
+          </form>
+        </section>
+
+        <ul id="deliveries"></ul>
     </main>
   </div>
 
   <script>
     async function load(){
-      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
-      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
-      const res = await fetch('/api/client/confirmations');
-      const ds = await res.json();
-      document.getElementById('deliveries').innerHTML = ds.map(d=>`<li>${d.id} - ${d.status} - <button onclick="confirmDelivery('${d.id}')">Confirm</button></li>`).join('');
+      try {
+        document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text()).catch(e=>{console.error('Header load failed:', e); return '';});
+        document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text()).catch(e=>{console.error('Sidebar load failed:', e); return '';});
+        const res = await fetch('/api/client/confirmations');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const ds = await res.json();
+        document.getElementById('deliveries').innerHTML = ds.map(d=>`<li>
+            ${d.id.substring(0,8)}... - PO: ${d.po_id || 'N/A'} - Status: ${d.status}
+            <button onclick="confirmDelivery('${d.id}')">Confirm</button>
+            <button onclick="editConfirmation('${d.id}')">Edit</button>
+            <button onclick="deleteConfirmation('${d.id}')">Delete</button>
+          </li>`).join('');
+      } catch (err) {
+        console.error('Error loading deliveries:', err);
+        document.getElementById('deliveries').innerHTML = '<li style="color:red;">Error loading deliveries.</li>';
+      }
     }
     async function confirmDelivery(id){
-      await fetch(`/api/client/${id}/confirm`,{method:'POST'});
-      load();
+      try {
+        const res = await fetch(`/api/client/${id}/confirm`,{method:'POST'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alert('Delivery confirmed successfully!');
+        load();
+      } catch (err) {
+        console.error('Confirm error:', err);
+        alert('Failed to confirm delivery: ' + err.message);
+      }
     }
+    
+    // Confirmation form handling
+    const confirmForm = document.getElementById('confirm-form');
+    confirmForm.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const fd = new FormData(confirmForm);
+      const id = fd.get('id');
+      const payload = {po_id: fd.get('po_id'), status: fd.get('status')};
+      try{
+        let res;
+        if (id) {
+          res = await fetch(`/api/client/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        } else {
+          res = await fetch('/api/client', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        confirmForm.reset();
+        load();
+        alert('Saved');
+      }catch(err){console.error(err);alert('Failed to save');}
+    });
+
+    document.getElementById('confirm-cancel').addEventListener('click', ()=>{confirmForm.reset();});
+
+    window.editConfirmation = async function(id){
+      try{
+        const res = await fetch(`/api/client/${id}`);
+        if (!res.ok) throw new Error('Not found');
+        const d = await res.json();
+        confirmForm.po_id.value = d.po_id || '';
+        confirmForm.status.value = d.status || 'delivered';
+        confirmForm.id.value = d.id;
+        window.scrollTo({top:0,behavior:'smooth'});
+      }catch(err){console.error(err);alert('Failed to load confirmation');}
+    }
+
+    window.deleteConfirmation = async function(id){
+      if (!confirm('Delete this confirmation?')) return;
+      try{
+        const res = await fetch(`/api/client/${id}`, {method:'DELETE'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alert('Deleted');
+        load();
+      }catch(err){console.error(err);alert('Failed to delete');}
+    }
+
     load();
   </script>
 </body>

@@ -2,28 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ProcureSys — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css"/>
 </head>
 <body>
   <div id="header"></div>
+
   <div class="layout">
-    <div id="sidebar"></div>
+    <aside id="sidebar"></aside>
     <main>
-      <h1>System Dashboard</h1>
-      <div id="stats"></div>
+      <section class="hero">
+        <h1>System Dashboard</h1>
+        <p class="lead">Overview of system health and quick links.</p>
+      </section>
+
+      <section id="stats" class="stats">
+        <!-- Filled by js/dashboard.js -->
+      </section>
     </main>
   </div>
 
   <script>
-    async function load(){
-      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
-      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
-      const res = await fetch('/api/dashboard');
-      const data = await res.json();
-      document.getElementById('stats').textContent = JSON.stringify(data, null, 2);
-    }
-    load();
+    // Load shared components (header and sidebar) then let dashboard.js populate stats
+    (async function(){
+      try{
+        document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
+        document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
+      }catch(e){
+        console.error('Error loading components:', e);
+      }
+    })();
   </script>
   <script src="js/dashboard.js"></script>
 </body>

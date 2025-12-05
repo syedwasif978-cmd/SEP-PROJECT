@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Warehouse - PR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/warehouse.css"/>
 </head>
 <body>
@@ -25,26 +28,44 @@
   <script>
     // load components
     async function loadComponents(){
-      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
-      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
+      try {
+        document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text()).catch(e=>{console.error('Header load failed:', e); return '';});
+        document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text()).catch(e=>{console.error('Sidebar load failed:', e); return '';});
+      } catch (err) {
+        console.error('Component load error:', err);
+      }
     }
     loadComponents();
 
     async function fetchItems(){
-      const res = await fetch('/api/warehouse/items');
-      const data = await res.json();
-      const ul = document.getElementById('items');
-      ul.innerHTML = '';
-      data.forEach(i=>{
-        const li = document.createElement('li');
-        li.textContent = `${i.sku} — ${i.name} — qty ${i.qty}`;
-        ul.appendChild(li);
-      });
+      try {
+        const res = await fetch('/api/warehouse/items');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const ul = document.getElementById('items');
+        ul.innerHTML = '';
+        data.forEach(i=>{
+          const li = document.createElement('li');
+          li.textContent = `SKU: ${i.sku} — ${i.name} — Qty: ${i.qty}`;
+          ul.appendChild(li);
+        });
+      } catch (err) {
+        console.error('Fetch items error:', err);
+        document.getElementById('items').innerHTML = '<li style="color:red;">Error loading warehouse items.</li>';
+      }
     }
+    
     document.getElementById('new-pr-btn').addEventListener('click', async ()=>{
-      const payload = {item_sku: 'SKU-001', qty: 10, requester: 'user1'};
-      await fetch('/api/pr', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-      alert('PR created (sample)');
+      try {
+        const payload = {item_sku: 'SKU-001', qty: 10, requester: 'warehouse_user'};
+        const res = await fetch('/api/pr', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alert('Purchase Requisition created successfully!');
+        fetchItems();
+      } catch (err) {
+        console.error('PR creation error:', err);
+        alert('Failed to create PR: ' + err.message);
+      }
     });
 
     fetchItems();

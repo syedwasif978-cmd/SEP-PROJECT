@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vendors</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/vendors.css"/>
 </head>
 <body>
@@ -11,23 +14,109 @@
     <div id="sidebar"></div>
     <main>
       <h1>Vendors & Negotiation</h1>
-      <section id="vendor-list"></section>
+      <section class="card" style="margin-bottom:12px">
+        <h3>Add / Edit Vendor</h3>
+        <form id="vendor-form">
+          <input type="hidden" name="id" />
+          <label>Name: <input name="name" required/></label>
+          <label>Contact: <input name="contact"/></label>
+          <label>Rating: <input name="rating" type="number" min="0" max="5"/></label>
+          <button type="submit">Save Vendor</button>
+          <button type="button" id="vendor-cancel">Cancel</button>
+        </form>
+      </section>
+
+      <section id="vendor-list" class="grid"></section>
     </main>
   </div>
 
   <script>
     async function load(){
-      document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text());
-      document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text());
-      const res = await fetch('/api/vendors');
-      const vendors = await res.json();
-      const container = document.getElementById('vendor-list');
-      container.innerHTML = vendors.map(v => `<div class="vendor-card"><h3>${v.name}</h3><p>${v.contact}</p><button onclick="negotiate('${v.id}')">Negotiate</button></div>`).join('');
+      try {
+        document.getElementById('header').innerHTML = await fetch('components/header.html').then(r=>r.text()).catch(e=>{console.error('Header load failed:', e); return '';});
+        document.getElementById('sidebar').innerHTML = await fetch('components/sidebar.html').then(r=>r.text()).catch(e=>{console.error('Sidebar load failed:', e); return '';});
+        const res = await fetch('/api/vendors');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const vendors = await res.json();
+        const container = document.getElementById('vendor-list');
+        container.innerHTML = vendors.map(v => `
+          <div class="vendor-card card">
+            <h3>${v.name}</h3>
+            <p class="muted">${v.contact || 'N/A'}</p>
+            <p>Rating: <strong>${v.rating}</strong></p>
+            <div style="margin-top:10px">
+              <button onclick="startEdit('${v.id}')">Edit</button>
+              <button onclick="removeVendor('${v.id}')">Delete</button>
+              <button onclick="negotiate('${v.id}')">Negotiate</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error loading vendors:', err);
+        document.getElementById('vendor-list').innerHTML = '<p style="color:red;">Error loading vendors. Backend may not be running.</p>';
+      }
     }
     async function negotiate(id){
-      await fetch(`/api/negotiation/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({note:'Initial offer'})});
-      alert('Negotiation created (sample)');
+      try {
+        const res = await fetch(`/api/negotiation/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({note:'Initial negotiation offer'})});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alert('Negotiation initiated successfully!');
+        load();
+      } catch (err) {
+        console.error('Negotiation error:', err);
+        alert('Failed to initiate negotiation: ' + err.message);
+      }
     }
+    
+    // Vendor form handling
+    const vendorForm = document.getElementById('vendor-form');
+    vendorForm.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const fd = new FormData(vendorForm);
+      const id = fd.get('id');
+      const payload = {name: fd.get('name'), contact: fd.get('contact'), rating: Number(fd.get('rating')||0)};
+      try{
+        let res;
+        if (id) {
+          res = await fetch(`/api/vendors/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        } else {
+          res = await fetch('/api/vendors', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        vendorForm.reset();
+        load();
+        alert('Vendor saved');
+      }catch(err){
+        console.error('Vendor save error', err);
+        alert('Failed to save vendor');
+      }
+    });
+
+    document.getElementById('vendor-cancel').addEventListener('click', ()=>{vendorForm.reset();});
+
+    window.startEdit = async function(id){
+      try{
+        const res = await fetch(`/api/vendors/${id}`);
+        if (!res.ok) throw new Error('Not found');
+        const v = await res.json();
+        vendorForm.name.value = v.name || '';
+        vendorForm.contact.value = v.contact || '';
+        vendorForm.rating.value = v.rating || 0;
+        vendorForm.id.value = v.id;
+        window.scrollTo({top:0,behavior:'smooth'});
+      }catch(err){console.error(err);alert('Failed to load vendor');}
+    }
+
+    window.removeVendor = async function(id){
+      if (!confirm('Delete this vendor?')) return;
+      try{
+        const res = await fetch(`/api/vendors/${id}`, {method:'DELETE'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alert('Vendor deleted');
+        load();
+      }catch(err){console.error(err);alert('Failed to delete vendor');}
+    }
+
     load();
   </script>
   <script src="js/vendors.js"></script>

@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Purchase Orders</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/po.css"/>
 </head>
 <body>
@@ -23,10 +26,26 @@
   <script>
     document.getElementById('po-form').addEventListener('submit', async e=>{
       e.preventDefault();
-      const fd = new FormData(e.target);
-      const body = {vendor_id: fd.get('vendor_id'), items: JSON.parse(fd.get('items'))};
-      const res = await fetch('/api/po', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
-      document.getElementById('po-result').textContent = 'PO created (sample)';
+      try {
+        const fd = new FormData(e.target);
+        const itemsStr = fd.get('items');
+        let items = [];
+        try {
+          items = JSON.parse(itemsStr);
+        } catch {
+          alert('Items must be valid JSON format');
+          return;
+        }
+        const body = {vendor_id: fd.get('vendor_id'), items: items, total: 0};
+        const res = await fetch('/api/po', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const result = await res.json();
+        document.getElementById('po-result').innerHTML = `<p style="color:green;">PO created successfully! ID: ${result.id.substring(0,8)}...</p>`;
+        e.target.reset();
+      } catch (err) {
+        console.error('PO creation error:', err);
+        document.getElementById('po-result').innerHTML = `<p style="color:red;">Error creating PO: ${err.message}</p>`;
+      }
     });
   </script>
   <script src="js/po.js"></script>
