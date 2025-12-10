@@ -20,6 +20,10 @@
         <button type="submit">Create PO</button>
       </form>
       <div id="po-result"></div>
+      <section style="margin-top:18px">
+        <h2>Existing Purchase Orders</h2>
+        <div id="po-list"></div>
+      </section>
     </main>
   </div>
 
@@ -47,6 +51,65 @@
         document.getElementById('po-result').innerHTML = `<p style="color:red;">Error creating PO: ${err.message}</p>`;
       }
     });
+    
+    async function loadPOs(){
+      try{
+        const res = await fetch('/api/po');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const pos = await res.json();
+        document.getElementById('po-list').innerHTML = pos.map(p=>{
+          return `<div class="card" style="margin-bottom:8px;padding:10px"><strong>${p.id.substring(0,8)}</strong> Vendor:${p.vendor_id||'N/A'} Total:${p.total||0} Status:${p.status||'created'}<br/>
+            <button onclick="receivePO('${p.id}')">Receive</button>
+            <button onclick="inspectPO('${p.id}')">Inspect (pass)</button>
+            <button onclick="failInspect('${p.id}')">Inspect (fail)</button>
+            <button onclick="createInvoice('${p.id}')">Create Invoice</button>
+          </div>`;
+        }).join('');
+      }catch(err){console.error(err);document.getElementById('po-list').innerHTML='<p style="color:red">Failed to load POs</p>'}
+    }
+
+    async function receivePO(id){
+      try{
+        const res = await fetch(`/api/po/${id}/receive`, {method:'POST'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        alert(data.message || 'PO received');
+        loadPOs();
+      }catch(err){console.error(err);alert('Failed to receive PO');}
+    }
+
+    async function inspectPO(id){
+      try{
+        const res = await fetch(`/api/po/${id}/inspect`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({result:'pass'})});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        alert(data.message || 'Inspection passed; invoice created');
+        loadPOs();
+      }catch(err){console.error(err);alert('Inspect failed');}
+    }
+
+    async function failInspect(id){
+      try{
+        const res = await fetch(`/api/po/${id}/inspect`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({result:'fail'})});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        alert(data.message || 'Inspection failed');
+        loadPOs();
+      }catch(err){console.error(err);alert('Inspect failed');}
+    }
+
+    async function createInvoice(id){
+      try{
+        const res = await fetch(`/api/po/${id}/invoice`, {method:'POST'});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        alert(data.message || 'Invoice created');
+        loadPOs();
+      }catch(err){console.error(err);alert('Failed to create invoice');}
+    }
+
+    // load POs on page load
+    setTimeout(loadPOs, 300);
   </script>
   <script src="js/po.js"></script>
 </body>

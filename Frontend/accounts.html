@@ -13,8 +13,25 @@
   <div class="layout">
     <div id="sidebar"></div>
     <main>
-      <h1>Accounts — Final Payment Process</h1>
-      <ul id="pending-payments"></ul>
+      <h1>Accounts — Invoices & Payments</h1>
+      <section class="card" style="margin-bottom:12px">
+        <h3>Create Invoice</h3>
+        <form id="invoice-form">
+          <label>PO ID: <input name="po_id" required/></label>
+          <label>Amount: <input name="amount" type="number" step="0.01" required/></label>
+          <button type="submit">Create Invoice</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Pending Payments</h2>
+        <ul id="pending-payments"></ul>
+      </section>
+
+      <section style="margin-top:18px">
+        <h2>All Invoices</h2>
+        <div id="all-invoices"></div>
+      </section>
     </main>
   </div>
 
@@ -26,7 +43,18 @@
         const res = await fetch('/api/accounts/pending');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const items = await res.json();
-        document.getElementById('pending-payments').innerHTML = items.map(i=>`<li>${i.id.substring(0,8)}... - Amount: ${i.amount} - Status: ${i.status} - <button onclick="pay('${i.id}')">Pay</button></li>`).join('');
+        document.getElementById('pending-payments').innerHTML = items.map(i=>`<li>
+          <strong>${i.id.substring(0,8)}</strong> - PO:${i.po_id||'N/A'} - Amount: <strong>${i.amount}</strong> - Status: ${i.status}
+          <button onclick="pay('${i.id}')">Mark Paid</button>
+        </li>`).join('');
+
+        // load all invoices
+        const allRes = await fetch('/api/accounts');
+        const all = await allRes.json();
+        document.getElementById('all-invoices').innerHTML = all.map(a=>`<div class="card" style="margin-bottom:8px;padding:10px">
+            <strong>${a.id.substring(0,8)}</strong> PO:${a.po_id||'N/A'} Amount:${a.amount} Status:${a.status}
+            <div style="margin-top:8px"><button onclick="viewInvoice('${a.id}')">View</button> <button onclick="pay('${a.id}')">Pay</button></div>
+          </div>`).join('');
       } catch (err) {
         console.error('Error loading pending payments:', err);
         document.getElementById('pending-payments').innerHTML = '<li style="color:red;">Error loading pending payments.</li>';
@@ -36,13 +64,34 @@
       try {
         const res = await fetch(`/api/accounts/${id}/pay`, {method:'POST'});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        alert('Payment marked as paid!');
+        const data = await res.json();
+        alert(data.message || 'Payment marked as paid!');
         load();
       } catch (err) {
         console.error('Payment error:', err);
         alert('Failed to mark payment: ' + err.message);
       }
     }
+
+    function viewInvoice(id){
+      window.open('/accounts.html?id='+id, '_blank');
+    }
+
+    // create invoice form
+    const invoiceForm = document.getElementById('invoice-form');
+    invoiceForm.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const fd = new FormData(invoiceForm);
+      try{
+        const payload = {po_id: fd.get('po_id'), amount: Number(fd.get('amount'))};
+        const res = await fetch('/api/accounts', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        invoiceForm.reset();
+        load();
+        alert(data.message || 'Invoice created');
+      }catch(err){console.error(err);alert('Failed to create invoice');}
+    });
     load();
   </script>
   <script src="js/account.js"></script>

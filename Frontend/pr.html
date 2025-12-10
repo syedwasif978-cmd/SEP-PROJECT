@@ -26,7 +26,12 @@
         const res = await fetch('/api/pr');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const prs = await res.json();
-        document.getElementById('pr-list').innerHTML = prs.map(x=>`<li>${x.id.substring(0,8)}... ${x.item} (qty: ${x.qty}) - <button onclick="recommend('${x.id}')">Recommend</button></li>`).join('');
+        document.getElementById('pr-list').innerHTML = prs.map(x=>{
+          const status = x.status || 'pending';
+          let actions = `<button onclick="recommend('${x.id}')">Recommend</button>`;
+          if (status === 'approved') actions += ` <button onclick="createPOfromPR('${x.id}')">Create PO</button>`;
+          return `<li>${x.id.substring(0,8)}... ${x.item} (qty: ${x.qty}) <span class="muted">[${status}]</span> - ${actions}</li>`;
+        }).join('');
       } catch (err) {
         console.error('Error loading PRs:', err);
         document.getElementById('pr-list').innerHTML = '<li style="color:red;">Error loading PRs. Backend may not be running.</li>';
@@ -35,13 +40,37 @@
     async function recommend(id){
       try {
         const res = await fetch(`/api/pr/${id}/recommend`, {method:'POST'});
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        alert('PR recommended successfully!');
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`HTTP ${res.status} ${txt}`);
+        }
+        const data = await res.json();
+        alert(data.message || 'PR recommended — transferred to Commercial');
         load();
       } catch (err) {
         console.error('Recommend error:', err);
         alert('Failed to recommend PR: ' + err.message);
       }
+    }
+    
+    // Create PO from PR (prompt for vendor and items)
+    async function createPOfromPR(id){
+      try{
+        const vendor = prompt('Enter vendor ID for this PO (leave blank to set later):');
+        const itemsStr = prompt('Enter items JSON for PO (e.g. [{"sku":"SKU-1","name":"Item","qty":1}])');
+        let items = [];
+        try{ if (itemsStr) items = JSON.parse(itemsStr); } catch(e){ alert('Invalid JSON'); return; }
+        const payload = {vendor_id: vendor || null, items: items, total: 0};
+        // Use the PR-specific create_po endpoint so PR status is updated and we get a workflow message
+        const res = await fetch(`/api/pr/${id}/create_po`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`HTTP ${res.status} ${txt}`);
+        }
+        const po = await res.json();
+        alert(po.message || ('PO created: ' + (po.po_id || po.id)));
+        load();
+      }catch(err){console.error('Create PO error', err); alert('Failed to create PO');}
     }
     load();
   </script>

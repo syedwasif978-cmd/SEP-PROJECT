@@ -33,6 +33,23 @@ def create_negotiation():
         return jsonify({'error': str(e)}), 500
 
 
+@negotiation_bp.route('/<string:neg_id>/accept', methods=['POST'])
+def accept_negotiation(neg_id):
+    """Accept a negotiation (mark in note)."""
+    try:
+        n = VendorNegotiation.query.get(neg_id)
+        if not n:
+            return jsonify({'error': 'not found'}), 404
+        data = request.get_json() or {}
+        maker = data.get('accepted_by', 'vendor')
+        n.note = (n.note or '') + f"\n[ACCEPTED by {maker}]"
+        db.session.commit()
+        return jsonify(to_dict(n))
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
 @negotiation_bp.route('/<string:vendor_id>', methods=['POST'])
 def create_negotiation_for_vendor(vendor_id):
     """Create a negotiation for a specific vendor."""

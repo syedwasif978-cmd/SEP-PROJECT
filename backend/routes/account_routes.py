@@ -38,7 +38,7 @@ def create_account():
         a = AccountEntry(po_id=po_id, amount=amount, status=data.get('status', 'pending'))
         db.session.add(a)
         db.session.commit()
-        return jsonify(to_dict(a)), 201
+        return jsonify({'account': to_dict(a), 'message': 'Invoice created — sent to Accounts for processing'}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -53,7 +53,7 @@ def mark_paid(account_id):
             return jsonify({'error': 'not found'}), 404
         acc.status = 'paid'
         db.session.commit()
-        return jsonify(to_dict(acc))
+        return jsonify({'account': to_dict(acc), 'message': 'Payment completed — transaction closed and recorded in Accounts'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

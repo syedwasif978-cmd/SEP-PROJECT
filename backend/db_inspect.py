@@ -1,0 +1,11 @@
+import sqlite3, json
+c=sqlite3.connect('app.db')
+cur=c.cursor()
+print('purchase_orders schema:')
+cur.execute("PRAGMA table_info('purchase_orders')")
+print(cur.fetchall())
+print('purchase_requisitions schema:')
+cur.execute("PRAGMA table_info('purchase_requisitions')")
+print(cur.fetchall())
+cur.close()
+c.close()

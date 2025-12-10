@@ -24,7 +24,8 @@ def create_pr():
         pr = PurchaseRequisition(item=item, qty=qty, requester=requester)
         db.session.add(pr)
         db.session.commit()
-        return jsonify(to_dict(pr)), 201
+        # Inform frontend where the PR is sent next
+        return jsonify({'pr': to_dict(pr), 'message': 'Order received — transferred to Procurement (PR) department'}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -76,7 +77,40 @@ def recommend_pr(pr_id):
             return jsonify({'error': 'not found'}), 404
         pr.status = 'recommended'
         db.session.commit()
-        return jsonify(to_dict(pr))
+        return jsonify({'pr': to_dict(pr), 'message': 'PR recommended — transferred to Commercial department for decision'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@pr_bp.route('/<string:pr_id>/create_po', methods=['POST'])
+def create_po_from_pr(pr_id):
+    """Create a Purchase Order automatically from a PR's data.
+    Request JSON may include `vendor_id` and `items` override.
+    """
+    try:
+        pr = PurchaseRequisition.query.get(pr_id)
+        if not pr:
+            return jsonify({'error': 'PR not found'}), 404
+        data = request.get_json() or {}
+        vendor_id = data.get('vendor_id')
+        items = data.get('items')
+        # Default item structure from PR if items not provided
+        if not items:
+            items = [{
+                'sku': getattr(pr, 'item', None),
+                'name': getattr(pr, 'item', None),
+                'qty': getattr(pr, 'qty', 1)
+            }]
+        total = data.get('total', 0.0)
+        from models.purchase_order import PurchaseOrder
+        import json
+        po = PurchaseOrder(vendor_id=vendor_id or None, items=json.dumps(items), total=total)
+        db.session.add(po)
+        # mark PR as having a PO created
+        pr.status = 'po_created'
+        db.session.commit()
+        return jsonify({'po_id': po.id, 'pr_id': pr.id, 'message': 'PO created from PR — sent to Vendor for fulfillment'}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

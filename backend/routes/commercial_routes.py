@@ -61,7 +61,12 @@ def commercial_decision():
         a = CommercialApproval(pr_id=pr_id, approver='commercial_dept', decision=decision, comments='Commercial decision')
         db.session.add(a)
         db.session.commit()
-        return jsonify({'status': 'success', 'pr_id': pr_id, 'decision': decision})
+        # Provide a message describing the next transfer in the workflow
+        if decision == 'approved':
+            msg = 'PR approved — Procurement may now create a PO'
+        else:
+            msg = 'PR rejected — returned to requester for revision'
+        return jsonify({'status': 'success', 'pr_id': pr_id, 'decision': decision, 'message': msg})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
