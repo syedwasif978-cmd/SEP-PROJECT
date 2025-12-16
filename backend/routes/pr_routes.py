@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from config.db import db
 from models.purchase_requisition import PurchaseRequisition
 from utils.helpers import to_dict
+from utils.workflow import process_pr_full
 
 pr_bp = Blueprint('pr', __name__)
 
@@ -110,6 +111,11 @@ def create_po_from_pr(pr_id):
         # mark PR as having a PO created
         pr.status = 'po_created'
         db.session.commit()
+        # support automatic full workflow run if requested
+        auto = data.get('auto_full') or data.get('auto')
+        if auto:
+            automation = process_pr_full(pr.id)
+            return jsonify({'po_id': po.id, 'pr_id': pr.id, 'message': 'PO created and workflow auto-executed', 'automation': automation}), 201
         return jsonify({'po_id': po.id, 'pr_id': pr.id, 'message': 'PO created from PR — sent to Vendor for fulfillment'}), 201
     except Exception as e:
         db.session.rollback()

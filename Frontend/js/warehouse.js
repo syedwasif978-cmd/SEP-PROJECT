@@ -4,5 +4,5 @@ console.log('warehouse.js loaded');
 // Error handler for warehouse operations
 function handleWarehouseError(error) {
   console.error('Warehouse operation error:', error);
-  alert('Warehouse operation failed. Check console for details.');
+  try{ showToast('Warehouse operation failed. Check console for details.', 'error'); }catch(e){console.error(e)}
 }

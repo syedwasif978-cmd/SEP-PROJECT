@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/tax.css"/>
+  <link rel="stylesheet" href="css/toast.css"/>
 </head>
 <body>
   <div id="header"></div>
@@ -25,7 +26,7 @@
       try {
         const amount = +document.getElementById('amount').value;
         if (isNaN(amount) || amount < 0) {
-          alert('Please enter a valid amount');
+          showToast('Please enter a valid amount', 'warning');
           return;
         }
         const res = await fetch('/api/tax/calc', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({amount})});
@@ -38,6 +39,7 @@
       }
     });
   </script>
+  <script src="js/toast.js"></script>
   <script src="js/tax.js"></script>
 </body>
 </html>

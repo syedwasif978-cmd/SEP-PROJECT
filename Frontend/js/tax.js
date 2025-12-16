@@ -4,5 +4,5 @@ console.log('tax.js loaded');
 // Error handler for tax operations
 function handleTaxError(error) {
   console.error('Tax calculation error:', error);
-  alert('Tax calculation failed. Check console for details.');
+  try{ showToast('Tax calculation failed. Check console for details.', 'error'); }catch(e){console.error(e)}
 }

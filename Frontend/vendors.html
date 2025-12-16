@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/vendors.css"/>
+  <link rel="stylesheet" href="css/toast.css"/>
 </head>
 <body>
   <div id="header"></div>
@@ -60,11 +61,11 @@
       try {
         const res = await fetch(`/api/negotiation/${id}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({note:'Initial negotiation offer'})});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        alert('Negotiation initiated successfully!');
+        showToast('Negotiation initiated successfully!', 'success');
         load();
       } catch (err) {
         console.error('Negotiation error:', err);
-        alert('Failed to initiate negotiation: ' + err.message);
+        showToast('Failed to initiate negotiation: ' + err.message, 'error');
       }
     }
     
@@ -85,10 +86,10 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         vendorForm.reset();
         load();
-        alert('Vendor saved');
+        showToast('Vendor saved', 'success');
       }catch(err){
         console.error('Vendor save error', err);
-        alert('Failed to save vendor');
+        showToast('Failed to save vendor', 'error');
       }
     });
 
@@ -104,7 +105,7 @@
         vendorForm.rating.value = v.rating || 0;
         vendorForm.id.value = v.id;
         window.scrollTo({top:0,behavior:'smooth'});
-      }catch(err){console.error(err);alert('Failed to load vendor');}
+      }catch(err){console.error(err);showToast('Failed to load vendor', 'error');}
     }
 
     window.removeVendor = async function(id){
@@ -112,13 +113,14 @@
       try{
         const res = await fetch(`/api/vendors/${id}`, {method:'DELETE'});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        alert('Vendor deleted');
+        showToast('Vendor deleted', 'success');
         load();
-      }catch(err){console.error(err);alert('Failed to delete vendor');}
+      }catch(err){console.error(err);showToast('Failed to delete vendor', 'error');}
     }
 
     load();
   </script>
+  <script src="js/toast.js"></script>
   <script src="js/vendors.js"></script>
 </body>
 </html>

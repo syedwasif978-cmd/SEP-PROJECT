@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css"/>
   <link rel="stylesheet" href="css/warehouse.css"/>
+  <link rel="stylesheet" href="css/toast.css"/>
 </head>
 <body>
   <!-- Include components -->
@@ -60,16 +61,17 @@
         const payload = {item_sku: 'SKU-001', qty: 10, requester: 'warehouse_user'};
         const res = await fetch('/api/pr', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        alert('Purchase Requisition created successfully!');
+        showToast('Purchase Requisition created successfully!', 'success');
         fetchItems();
       } catch (err) {
         console.error('PR creation error:', err);
-        alert('Failed to create PR: ' + err.message);
+        showToast('Failed to create PR: ' + err.message, 'error');
       }
     });
 
     fetchItems();
   </script>
   <script src="js/warehouse.js"></script>
+  <script src="js/toast.js"></script>
 </body>
 </html>

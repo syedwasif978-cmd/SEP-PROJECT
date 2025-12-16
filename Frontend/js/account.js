@@ -4,5 +4,5 @@ console.log('account.js loaded');
 // Error handler for account operations
 function handleAccountError(error) {
   console.error('Account operation error:', error);
-  alert('Account operation failed. Check console for details.');
+  try{ showToast('Account operation failed. Check console for details.', 'error'); }catch(e){console.error(e)}
 }

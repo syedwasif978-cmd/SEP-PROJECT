@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Order | Procurement Management System</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/toast.css">
+    <style>
+        .order-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .workflow-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .workflow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .step-circle.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .step-circle.completed {
+            background: #4caf50;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .workflow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+            top: 20px;
+            margin-left: 25px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .order-summary {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            font-weight: bold;
+        }
+
+        .success-message {
+            display: none;
+            background: #4caf50;
+            color: white;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .workflow-indicator {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="order-container">
+        <h1>Place New Order</h1>
+        
+        <!-- Workflow Indicator -->
+        <div class="workflow-indicator">
+            <div class="workflow-step">
+                <div class="step-circle active">1</div>
+                <div class="step-label">Place Order</div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-circle">2</div>
+                <div class="step-label">Request Quotation</div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-circle">3</div>
+                <div class="step-label">Compare Quotes</div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-circle">4</div>
+                <div class="step-label">Issue PO</div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-circle">5</div>
+                <div class="step-label">Calculate Tax</div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-circle">6</div>
+                <div class="step-label">Generate Invoice</div>
+            </div>
+        </div>
+
+        <div id="successMessage" class="success-message"></div>
+
+        <form id="orderForm">
+            <!-- Client Information Section -->
+            <div class="form-section">
+                <h3>📋 Client Information</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clientName">Client Name *</label>
+                        <input type="text" id="clientName" name="clientName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientEmail">Email Address *</label>
+                        <input type="email" id="clientEmail" name="clientEmail" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Details Section -->
+            <div class="form-section">
+                <h3>📦 Order Details</h3>
+                
+                <div class="form-group">
+                    <label for="orderDescription">Description of Required Items *</label>
+                    <textarea id="orderDescription" name="orderDescription" placeholder="List all items needed with specifications..." required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="quantity">Quantity *</label>
+                        <input type="number" id="quantity" name="quantity" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="totalBudget">Total Budget (PKR) *</label>
+                        <input type="number" id="totalBudget" name="totalBudget" min="0" step="0.01" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <h4 style="margin-top: 0;">Order Summary</h4>
+                <div class="summary-row">
+                    <span>Items:</span>
+                    <span id="summaryQuantity">0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Budget:</span>
+                    <span id="summaryBudget">PKR 0</span>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="reset" class="btn btn-secondary">Clear Form</button>
+                <button type="submit" class="btn btn-primary">📤 Submit Order to Commercial</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="js/toast.js"></script>
+    <script>
+        // Load header
+        fetch('components/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+
+        const orderForm = document.getElementById('orderForm');
+        const quantityInput = document.getElementById('quantity');
+        const budgetInput = document.getElementById('totalBudget');
+        const summaryQuantity = document.getElementById('summaryQuantity');
+        const summaryBudget = document.getElementById('summaryBudget');
+
+        // Update summary on input
+        quantityInput.addEventListener('input', updateSummary);
+        budgetInput.addEventListener('input', updateSummary);
+
+        function updateSummary() {
+            const qty = quantityInput.value || 0;
+            const budget = budgetInput.value || 0;
+            summaryQuantity.textContent = qty;
+            summaryBudget.textContent = `PKR ${parseFloat(budget).toLocaleString('en-PK', {minimumFractionDigits: 0})}`;
+        }
+
+        orderForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                client_name: document.getElementById('clientName').value,
+                client_email: document.getElementById('clientEmail').value,
+                description: document.getElementById('orderDescription').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                total_budget: parseFloat(document.getElementById('totalBudget').value)
+            };
+
+            try {
+                const response = await fetch('/api/orders/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const order = result.order;
+                    showToast(result.message, 'success');
+                    
+                    // Show success message
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.innerHTML = `
+                        <strong>✓ Order ${order.id} Created!</strong><br>
+                        Order Status: ${order.status}<br>
+                        <small>Awaiting Commercial Department review</small>
+                    `;
+                    successMsg.classList.add('show');
+
+                    // Reset form
+                    orderForm.reset();
+                    updateSummary();
+
+                    // Redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = 'dashboard_new.html';
+                    }, 3000);
+                } else {
+                    showToast('Error creating order: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showToast('Connection error: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

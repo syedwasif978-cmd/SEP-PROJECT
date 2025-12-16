@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Management | Procurement</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/toast.css">
+    <style>
+        .invoice-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .invoice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .invoice-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .invoice-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .invoice-number {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .invoice-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-generated {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-verified {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-paid {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .invoice-detail {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .invoice-label {
+            color: #666;
+        }
+
+        .invoice-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .invoice-summary {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .summary-row.total {
+            border-top: 1px solid #ddd;
+            padding-top: 8px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 8px;
+        }
+
+        .invoice-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .tax-calculator {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .tax-calculator h4 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .tax-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 0.5fr;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .tax-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .invoice-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="invoice-container">
+        <h1 class="section-title">💵 Invoice Management</h1>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="generate">Generate Invoice</button>
+            <button class="tab" data-tab="list">Invoice List</button>
+            <button class="tab" data-tab="payment">Payment Tracking</button>
+        </div>
+
+        <!-- Tab 1: Generate Invoice -->
+        <div id="generate" class="tab-content active">
+            <div class="form-card">
+                <h2 style="margin-top: 0;">📄 UC-08: Generate Invoice Bill</h2>
+                <form id="generateInvoiceForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="invOrderId">Order ID *</label>
+                            <select id="invOrderId" name="orderId" required>
+                                <option value="">Select an order...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="invPoId">Purchase Order ID *</label>
+                            <select id="invPoId" name="poId" required>
+                                <option value="">Select a PO...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="invVendorId">Vendor ID/Name *</label>
+                        <input type="text" id="invVendorId" name="vendorId" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deliveryChallan">Delivery Challan #</label>
+                        <input type="text" id="deliveryChallan" name="delivery_challan" placeholder="Reference to delivery document">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="baseAmount">Base Amount (PKR) *</label>
+                            <input type="number" id="baseAmount" name="baseAmount" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="invTaxAmount">Tax Amount (PKR)</label>
+                            <input type="number" id="invTaxAmount" name="taxAmount" min="0" step="0.01" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Tax Calculator Section -->
+                    <div class="tax-calculator">
+                        <h4>🧮 Tax Calculation (UC-06 & UC-07)</h4>
+                        
+                        <div class="tax-row">
+                            <div class="form-group">
+                                <label for="taxRate">Tax Rate (%) *</label>
+                                <input type="number" id="taxRate" name="taxRate" min="0" max="100" step="0.01" value="17" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="withholding Rate">Withholding Tax Rate (%) *</label>
+                                <input type="number" id="withholdingRate" name="withholdingRate" min="0" max="100" step="0.01" value="5" required>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="calculateTax()">Calculate</button>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="invWithholdingTax">Withholding Tax (PKR)</label>
+                                <input type="number" id="invWithholdingTax" name="withholdingTax" min="0" step="0.01" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="totalAmount">Total Amount (PKR)</label>
+                                <input type="number" id="totalAmount" name="totalAmount" min="0" step="0.01" readonly style="font-weight: bold; color: #667eea;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">📤 Generate & Submit Invoice</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab 2: Invoice List -->
+        <div id="list" class="tab-content">
+            <div id="invoiceList" class="invoice-grid"></div>
+        </div>
+
+        <!-- Tab 3: Payment Tracking -->
+        <div id="payment" class="tab-content">
+            <div id="paymentList" class="invoice-grid"></div>
+        </div>
+    </main>
+
+    <script src="js/toast.js"></script>
+    <script>
+        fetch('components/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                const tabId = e.target.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+                
+                if (tabId === 'list') loadInvoiceList();
+                if (tabId === 'payment') loadPaymentTracking();
+            });
+        });
+
+        // Load orders for invoice generation
+        async function loadOrdersForInvoice() {
+            try {
+                const response = await fetch('/api/orders/');
+                const orders = await response.json();
+                const select = document.getElementById('invOrderId');
+                select.innerHTML = '<option value="">Select an order...</option>';
+                orders.forEach(order => {
+                    const option = document.createElement('option');
+                    option.value = order.id;
+                    option.textContent = `Order ${order.id} - ${order.client_name}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                showToast('Error loading orders', 'error');
+            }
+        }
+
+        // Load POs when order is selected
+        document.getElementById('invOrderId').addEventListener('change', async (e) => {
+            const orderId = e.target.value;
+            const poSelect = document.getElementById('invPoId');
+            poSelect.innerHTML = '<option value="">Select a PO...</option>';
+            
+            if (orderId) {
+                try {
+                    const response = await fetch(`/api/po/?order_id=${orderId}`);
+                    const pos = await response.json();
+                    pos.forEach(po => {
+                        const option = document.createElement('option');
+                        option.value = po.id;
+                        option.textContent = `PO ${po.id} - ${po.vendor_id}`;
+                        option.dataset.vendorId = po.vendor_id;
+                        option.dataset.amount = po.total_amount;
+                        poSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+
+        // Update vendor and amount when PO is selected
+        document.getElementById('invPoId').addEventListener('change', (e) => {
+            const selected = e.target.options[e.target.selectedIndex];
+            const vendorId = selected.dataset.vendorId || '';
+            const amount = selected.dataset.amount || '';
+            document.getElementById('invVendorId').value = vendorId;
+            document.getElementById('baseAmount').value = amount;
+        });
+
+        // Calculate tax
+        function calculateTax() {
+            const baseAmount = parseFloat(document.getElementById('baseAmount').value) || 0;
+            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+            const withholdingRate = parseFloat(document.getElementById('withholdingRate').value) || 0;
+
+            const taxAmount = baseAmount * (taxRate / 100);
+            const withholdingAmount = baseAmount * (withholdingRate / 100);
+            const totalAmount = baseAmount + taxAmount - withholdingAmount;
+
+            document.getElementById('invTaxAmount').value = taxAmount.toFixed(2);
+            document.getElementById('invWithholdingTax').value = withholdingAmount.toFixed(2);
+            document.getElementById('totalAmount').value = totalAmount.toFixed(2);
+        }
+
+        // Listen to base amount changes
+        document.getElementById('baseAmount').addEventListener('input', calculateTax);
+
+        // Submit invoice
+        document.getElementById('generateInvoiceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                order_id: document.getElementById('invOrderId').value,
+                po_id: document.getElementById('invPoId').value,
+                vendor_id: document.getElementById('invVendorId').value,
+                delivery_challan: document.getElementById('deliveryChallan').value,
+                base_amount: parseFloat(document.getElementById('baseAmount').value),
+                tax_amount: parseFloat(document.getElementById('invTaxAmount').value),
+                withholding_tax: parseFloat(document.getElementById('invWithholdingTax').value)
+            };
+
+            try {
+                const response = await fetch('/api/invoices/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showToast(result.message, 'success');
+                    document.getElementById('generateInvoiceForm').reset();
+                    loadOrdersForInvoice();
+                } else {
+                    showToast('Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showToast('Connection error: ' + error.message, 'error');
+            }
+        });
+
+        // Load invoice list
+        async function loadInvoiceList() {
+            try {
+                const response = await fetch('/api/invoices/');
+                const invoices = await response.json();
+                const container = document.getElementById('invoiceList');
+                container.innerHTML = '';
+
+                if (invoices.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No invoices generated yet</p></div>';
+                    return;
+                }
+
+                invoices.forEach(invoice => {
+                    const card = document.createElement('div');
+                    card.className = 'invoice-card';
+                    card.innerHTML = `
+                        <div class="invoice-header">
+                            <div class="invoice-number">${invoice.invoice_number}</div>
+                            <span class="invoice-status status-${invoice.status}">${invoice.status}</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Order:</span>
+                            <span class="invoice-value">${invoice.order_id}</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Vendor:</span>
+                            <span class="invoice-value">${invoice.vendor_id}</span>
+                        </div>
+                        <div class="invoice-summary">
+                            <div class="summary-row">
+                                <span>Base:</span>
+                                <span>PKR ${invoice.base_amount.toLocaleString()}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax:</span>
+                                <span>PKR ${invoice.tax_amount.toLocaleString()}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Withholding:</span>
+                                <span>-PKR ${invoice.withholding_tax.toLocaleString()}</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total:</span>
+                                <span>PKR ${invoice.total_amount.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                showToast('Error loading invoices', 'error');
+            }
+        }
+
+        // Load payment tracking
+        async function loadPaymentTracking() {
+            try {
+                const response = await fetch('/api/invoices/');
+                const invoices = await response.json();
+                const container = document.getElementById('paymentList');
+                container.innerHTML = '';
+
+                if (invoices.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>No invoices for payment</p></div>';
+                    return;
+                }
+
+                invoices.forEach(invoice => {
+                    const card = document.createElement('div');
+                    card.className = 'invoice-card';
+                    card.setAttribute('data-invoice-id', invoice.id);
+                    card.innerHTML = `
+                        <div class="invoice-header">
+                            <div class="invoice-number">${invoice.invoice_number}</div>
+                            <span class="invoice-status status-${invoice.payment_status}">${invoice.payment_status}</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Vendor:</span>
+                            <span class="invoice-value">${invoice.vendor_id}</span>
+                        </div>
+                        <div class="invoice-detail">
+                            <span class="invoice-label">Total Due:</span>
+                            <span class="invoice-value" style="font-size: 16px; color: #667eea;">PKR ${invoice.total_amount.toLocaleString()}</span>
+                        </div>
+                        <div class="invoice-actions">
+                            ${invoice.payment_status === 'pending' ? `
+                                <button class="btn btn-success" onclick="markAsPaid('${invoice.id}')">✓ Mark as Paid</button>
+                            ` : `
+                                <span style="padding: 8px 12px; border-radius: 4px; background: #d4edda; color: #155724; font-weight: 600; font-size: 12px;">PAID</span>
+                            `}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                showToast('Error loading payment tracking', 'error');
+            }
+        }
+
+        // Mark invoice as paid
+        async function markAsPaid(invoiceId) {
+            try {
+                const response = await fetch(`/api/invoices/${invoiceId}/mark-paid`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showToast(result.message, 'success');
+                    loadPaymentTracking();
+                } else {
+                    showToast('Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showToast('Connection error: ' + error.message, 'error');
+            }
+        }
+
+        // Initialize
+        loadOrdersForInvoice();
+    </script>
+</body>
+</html>

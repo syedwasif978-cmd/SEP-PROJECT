@@ -6,6 +6,7 @@
   <title>Client Confirmation</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css"/>
+  <link rel="stylesheet" href="css/toast.css"/>
 </head>
 <body>
   <div id="header"></div>
@@ -50,12 +51,12 @@
     async function confirmDelivery(id){
       try {
         const res = await fetch(`/api/client/${id}/confirm`,{method:'POST'});
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        alert('Delivery confirmed successfully!');
-        load();
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          showToast('Delivery confirmed successfully!', 'success');
+          load();
       } catch (err) {
         console.error('Confirm error:', err);
-        alert('Failed to confirm delivery: ' + err.message);
+          showToast('Failed to confirm delivery: ' + err.message, 'error');
       }
     }
     
@@ -76,8 +77,8 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         confirmForm.reset();
         load();
-        alert('Saved');
-      }catch(err){console.error(err);alert('Failed to save');}
+        showToast('Saved', 'success');
+      }catch(err){console.error(err);showToast('Failed to save', 'error');}
     });
 
     document.getElementById('confirm-cancel').addEventListener('click', ()=>{confirmForm.reset();});
@@ -91,7 +92,7 @@
         confirmForm.status.value = d.status || 'delivered';
         confirmForm.id.value = d.id;
         window.scrollTo({top:0,behavior:'smooth'});
-      }catch(err){console.error(err);alert('Failed to load confirmation');}
+      }catch(err){console.error(err);showToast('Failed to load confirmation', 'error');}
     }
 
     window.deleteConfirmation = async function(id){
@@ -99,12 +100,13 @@
       try{
         const res = await fetch(`/api/client/${id}`, {method:'DELETE'});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        alert('Deleted');
+        showToast('Deleted', 'success');
         load();
-      }catch(err){console.error(err);alert('Failed to delete');}
+      }catch(err){console.error(err);showToast('Failed to delete', 'error');}
     }
 
     load();
   </script>
+  <script src="js/toast.js"></script>
 </body>
 </html>

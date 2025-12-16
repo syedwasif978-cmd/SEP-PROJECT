@@ -21,6 +21,12 @@ from routes.client_routes import client_bp
 from routes.warehouse_routes import warehouse_bp
 from routes import dashboard_routes
 
+# New use-case-driven routes (UC-01 through UC-08)
+from routes.order_routes import order_bp
+from routes.quotation_routes import quotation_bp
+from routes.invoice_routes import invoice_bp
+from routes.po_routes_new import po_bp_new
+
 import os
 
 # Resolve frontend absolute path so static files are served regardless of cwd
@@ -36,6 +42,12 @@ app.config.from_object('config.settings.Config')
 db.init_app(app)
 
 # register blueprints
+app.register_blueprint(order_bp, url_prefix='/api/orders')
+app.register_blueprint(quotation_bp, url_prefix='/api/quotations')
+app.register_blueprint(invoice_bp, url_prefix='/api/invoices')
+app.register_blueprint(po_bp_new, url_prefix='/api/po')
+
+# Legacy blueprints (to be refactored)
 app.register_blueprint(pr_bp, url_prefix='/api/pr')
 app.register_blueprint(vendor_bp, url_prefix='/api/vendors')
 app.register_blueprint(negotiation_bp, url_prefix='/api/negotiation')
@@ -50,7 +62,7 @@ app.register_blueprint(dashboard_routes.bp, url_prefix='/api')
 # serve frontend static files
 @app.route('/')
 def index():
-    return app.send_static_file('dashboard.html')
+    return app.send_static_file('dashboard_new.html')
 
 
 # SPA fallback: if a non-API route is requested, return the dashboard so
@@ -62,7 +74,7 @@ def handle_404(e):
     if request.path.startswith('/api'):
         return jsonify({'error': 'not found'}), 404
     # Otherwise serve the frontend entrypoint so users can navigate directly
-    return app.send_static_file('dashboard.html')
+    return app.send_static_file('dashboard_new.html')
 
 if __name__ == '__main__':
     # Open default browser after server starts

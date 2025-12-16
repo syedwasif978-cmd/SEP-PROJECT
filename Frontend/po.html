@@ -1,31 +1,237 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Purchase Orders</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/dashboard.css"/>
-  <link rel="stylesheet" href="css/po.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Order Issuance | Procurement</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/toast.css">
+    <style>
+        .po-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .form-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-card h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .po-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .po-summary h3 {
+            margin-top: 0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #667eea;
+            color: white;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+    </style>
 </head>
 <body>
-  <div id="header"></div>
-  <div class="layout">
-    <div id="sidebar"></div>
-    <main>
-      <h1>Create Purchase Order</h1>
-      <form id="po-form">
-        <label>Vendor ID: <input name="vendor_id" required/></label><br/>
-        <label>Items JSON: <textarea name="items" required></textarea></label><br/>
-        <button type="submit">Create PO</button>
-      </form>
-      <div id="po-result"></div>
-      <section style="margin-top:18px">
-        <h2>Existing Purchase Orders</h2>
-        <div id="po-list"></div>
-      </section>
-    </main>
-  </div>
+    <div id="header-placeholder"></div>
+
+    <div class="layout">
+        <aside id="sidebar-placeholder"></aside>
+        
+        <main>
+            <div class="po-container">
+                <h1>📋 UC-03: Purchase Order Issuance</h1>
+
+                <div class="form-card">
+                    <h2>Issue PO from Approved Quotation</h2>
+                    <form id="poForm">
+                        <div class="form-group">
+                            <label for="quotationId">Select Approved Quotation *</label>
+                            <select id="quotationId" required>
+                                <option value="">Choose a quotation...</option>
+                            </select>
+                        </div>
+
+                        <div class="po-summary">
+                            <h3>PO Summary</h3>
+                            <div class="summary-row">
+                                <span>Vendor:</span>
+                                <span id="summaryVendor">—</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Amount:</span>
+                                <span id="summaryAmount">—</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Delivery:</span>
+                                <span id="summaryDelivery">—</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn">✓ Issue Purchase Order</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/toast.js"></script>
+    <script>
+        // Sidebar toggle setup function
+        function setupSidebarToggle() {
+            const toggle = document.querySelector('.sidebar-toggle');
+            if (toggle) {
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const menu = document.getElementById('sidebarMenu');
+                    const toggleText = document.getElementById('toggleText');
+                    const label = document.getElementById('toggleLabel');
+                    
+                    if (menu && toggleText && label) {
+                        menu.classList.toggle('collapsed');
+                        
+                        if (menu.classList.contains('collapsed')) {
+                            toggleText.textContent = '▶';
+                            label.textContent = 'Expand';
+                        } else {
+                            toggleText.textContent = '◀';
+                            label.textContent = 'Menu';
+                        }
+                    }
+                }, false);
+            }
+        }
+
+        Promise.all([
+            fetch('components/header.html').then(r => r.text()),
+            fetch('components/sidebar.html').then(r => r.text())
+        ]).then(([header, sidebar]) => {
+            document.getElementById('header-placeholder').innerHTML = header;
+            document.getElementById('sidebar-placeholder').innerHTML = sidebar;
+            // Setup sidebar toggle after sidebar is loaded
+            setupSidebarToggle();
+        });
+
+        async function loadApprovedQuotations() {
+            try {
+                const response = await fetch('/api/quotations/');
+                const quotations = await response.json();
+                const approved = quotations.filter(q => q.status === 'approved');
+                
+                const select = document.getElementById('quotationId');
+                select.innerHTML = '<option value="">Choose a quotation...</option>';
+                
+                approved.forEach(q => {
+                    const option = document.createElement('option');
+                    option.value = q.id;
+                    option.textContent = `${q.vendor_id} - PKR ${q.total_price.toLocaleString()}`;
+                    option.dataset.vendorId = q.vendor_id;
+                    option.dataset.amount = q.total_price;
+                    option.dataset.delivery = q.delivery_days;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading quotations:', error);
+            }
+        }
+
+        document.getElementById('quotationId').addEventListener('change', (e) => {
+            const selected = e.target.options[e.target.selectedIndex];
+            const vendor = selected.dataset.vendorId || '—';
+            const amount = selected.dataset.amount || '—';
+            const delivery = selected.dataset.delivery || '—';
+            
+            document.getElementById('summaryVendor').textContent = vendor;
+            document.getElementById('summaryAmount').textContent = amount !== '—' ? `PKR ${parseFloat(amount).toLocaleString()}` : '—';
+            document.getElementById('summaryDelivery').textContent = delivery !== '—' ? `${delivery} days` : '—';
+        });
+
+        document.getElementById('poForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const quotationId = document.getElementById('quotationId').value;
+            
+            try {
+                const response = await fetch('/api/po/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quotation_id: quotationId })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showToast(result.message, 'success');
+                    document.getElementById('poForm').reset();
+                    document.getElementById('summaryVendor').textContent = '—';
+                    document.getElementById('summaryAmount').textContent = '—';
+                    document.getElementById('summaryDelivery').textContent = '—';
+                    setTimeout(() => window.location.href = 'dashboard_new.html', 2000);
+                } else {
+                    showToast('Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showToast('Connection error: ' + error.message, 'error');
+            }
+        });
+
+        loadApprovedQuotations();
+    </script>
+</body>
+</html>
 
   <script>
     document.getElementById('po-form').addEventListener('submit', async e=>{
@@ -37,7 +243,7 @@
         try {
           items = JSON.parse(itemsStr);
         } catch {
-          alert('Items must be valid JSON format');
+          showToast('Items must be valid JSON format', 'error');
           return;
         }
         const body = {vendor_id: fd.get('vendor_id'), items: items, total: 0};
@@ -73,9 +279,9 @@
         const res = await fetch(`/api/po/${id}/receive`, {method:'POST'});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        alert(data.message || 'PO received');
+        showToast(data.message || 'PO received', 'success');
         loadPOs();
-      }catch(err){console.error(err);alert('Failed to receive PO');}
+      }catch(err){console.error(err);showToast('Failed to receive PO', 'error');}
     }
 
     async function inspectPO(id){
@@ -83,9 +289,9 @@
         const res = await fetch(`/api/po/${id}/inspect`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({result:'pass'})});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        alert(data.message || 'Inspection passed; invoice created');
+        showToast(data.message || 'Inspection passed; invoice created', 'success');
         loadPOs();
-      }catch(err){console.error(err);alert('Inspect failed');}
+      }catch(err){console.error(err);showToast('Inspect failed', 'error');}
     }
 
     async function failInspect(id){
@@ -93,9 +299,9 @@
         const res = await fetch(`/api/po/${id}/inspect`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({result:'fail'})});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        alert(data.message || 'Inspection failed');
+        showToast(data.message || 'Inspection failed', 'warning');
         loadPOs();
-      }catch(err){console.error(err);alert('Inspect failed');}
+      }catch(err){console.error(err);showToast('Inspect failed', 'error');}
     }
 
     async function createInvoice(id){
@@ -103,14 +309,15 @@
         const res = await fetch(`/api/po/${id}/invoice`, {method:'POST'});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        alert(data.message || 'Invoice created');
+        showToast(data.message || 'Invoice created', 'success');
         loadPOs();
-      }catch(err){console.error(err);alert('Failed to create invoice');}
+      }catch(err){console.error(err);showToast('Failed to create invoice', 'error');}
     }
 
     // load POs on page load
     setTimeout(loadPOs, 300);
   </script>
+  <script src="js/toast.js"></script>
   <script src="js/po.js"></script>
 </body>
 </html>

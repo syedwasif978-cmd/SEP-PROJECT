@@ -3,6 +3,7 @@ from config.db import db
 from models.commercial_approval import CommercialApproval
 from models.purchase_requisition import PurchaseRequisition
 from utils.helpers import to_dict
+from utils.workflow import process_pr_full
 
 commercial_bp = Blueprint('commercial', __name__)
 
@@ -63,10 +64,13 @@ def commercial_decision():
         db.session.commit()
         # Provide a message describing the next transfer in the workflow
         if decision == 'approved':
-            msg = 'PR approved — Procurement may now create a PO'
+            # automatically progress PR into PO -> receive -> inspect -> invoice -> pay
+            automation = process_pr_full(pr_id)
+            msg = 'PR approved — automated workflow executed'
+            return jsonify({'status': 'success', 'pr_id': pr_id, 'decision': decision, 'message': msg, 'automation': automation})
         else:
             msg = 'PR rejected — returned to requester for revision'
-        return jsonify({'status': 'success', 'pr_id': pr_id, 'decision': decision, 'message': msg})
+            return jsonify({'status': 'success', 'pr_id': pr_id, 'decision': decision, 'message': msg})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
