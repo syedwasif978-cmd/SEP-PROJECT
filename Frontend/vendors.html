@@ -19,11 +19,13 @@
         <h3>Add / Edit Vendor</h3>
         <form id="vendor-form">
           <input type="hidden" name="id" />
-          <label>Name: <input name="name" required/></label>
-          <label>Contact: <input name="contact"/></label>
-          <label>Rating: <input name="rating" type="number" min="0" max="5"/></label>
-          <button type="submit">Save Vendor</button>
-          <button type="button" id="vendor-cancel">Cancel</button>
+          <label>Name: <input name="name" placeholder="Enter vendor name" required/></label>
+          <label>Contact: <input name="contact" placeholder="Email or phone number"/></label>
+          <label>Rating: <input name="rating" type="number" min="0" max="5" placeholder="0-5"/></label>
+          <div>
+            <button type="submit">Save Vendor</button>
+            <button type="button" id="vendor-cancel">Cancel</button>
+          </div>
         </form>
       </section>
 

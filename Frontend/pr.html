@@ -14,8 +14,17 @@
   <div class="layout">
     <div id="sidebar"></div>
     <main>
-      <h1>Procurement Department — Recommendations & Approvals</h1>
-      <ul id="pr-list"></ul>
+      <div class="page-header">
+        <h1>Procurement Department</h1>
+        <p class="subtitle">Recommendations & Approvals</p>
+      </div>
+      <section class="pr-section">
+        <div class="section-header">
+          <h2>Purchase Requisitions (PRs)</h2>
+          <p class="description">Review and approve purchase requisitions before creating POs</p>
+        </div>
+        <ul id="pr-list" class="pr-list"></ul>
+      </section>
     </main>
   </div>
 
@@ -29,9 +38,25 @@
         const prs = await res.json();
         document.getElementById('pr-list').innerHTML = prs.map(x=>{
           const status = x.status || 'pending';
-          let actions = `<button onclick="recommend('${x.id}')">Recommend</button>`;
-          if (status === 'approved') actions += ` <button onclick="createPOfromPR('${x.id}')">Create PO</button>`;
-          return `<li>${x.id.substring(0,8)}... ${x.item} (qty: ${x.qty}) <span class="muted">[${status}]</span> - ${actions}</li>`;
+          const statusClass = status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'pending';
+          let actions = `<button class="btn-recommend" onclick="recommend('${x.id}')">Recommend</button>`;
+          if (status === 'approved') actions += ` <button class="btn-create-po" onclick="createPOfromPR('${x.id}')">Create PO</button>`;
+          const shortId = x.id.substring(0,8).toUpperCase();
+          return `
+            <li class="pr-item pr-${statusClass}">
+              <div class="pr-header">
+                <div class="pr-id">PR #${shortId}</div>
+                <span class="pr-status ${statusClass}">${status.toUpperCase()}</span>
+              </div>
+              <div class="pr-details">
+                <div class="pr-item-name">${x.item}</div>
+                <div class="pr-quantity">Qty: <strong>${x.qty}</strong></div>
+              </div>
+              <div class="pr-actions">
+                ${actions}
+              </div>
+            </li>
+          `;
         }).join('');
       } catch (err) {
         console.error('Error loading PRs:', err);

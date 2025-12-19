@@ -22,6 +22,7 @@
         .layout {
             display: flex;
             min-height: 100vh;
+            gap: 0;
         }
 
         main {
@@ -180,11 +181,17 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.06);
             border-left: 5px solid #667eea;
             transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
         }
 
         .stat-card:hover {
             box-shadow: 0 6px 20px rgba(0,0,0,0.1);
             transform: translateY(-4px);
+        }
+
+        .stat-card:active {
+            transform: translateY(-2px);
         }
 
         .stat-card.green {
@@ -272,11 +279,22 @@
             min-height: 130px;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
             border: none;
+            user-select: none;
         }
 
         .workflow-step:hover {
             transform: translateY(-6px);
             box-shadow: 0 10px 24px rgba(102, 126, 234, 0.35);
+        }
+
+        .workflow-step:active {
+            transform: translateY(-3px);
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .workflow-step:active {
+                transform: translateY(-6px);
+            }
         }
 
         .step-icon {
@@ -451,42 +469,42 @@
                             <h3>🔄 Procurement Workflow (UC-01 to UC-08)</h3>
                             <p>Click any step to start or manage:</p>
                             <div class="workflow-grid">
-                                <a href="order.html" class="workflow-step">
+                                <a href="/order.html" class="workflow-step">
                                     <div class="step-icon">📝</div>
                                     <div class="step-title">Place Order</div>
                                     <div class="step-number">UC-01</div>
                                 </a>
-                                <a href="quotation.html" class="workflow-step">
+                                <a href="/quotation.html" class="workflow-step">
                                     <div class="step-icon">💬</div>
                                     <div class="step-title">Request Quotation</div>
                                     <div class="step-number">UC-02</div>
                                 </a>
-                                <a href="po.html" class="workflow-step">
+                                <a href="/po.html" class="workflow-step">
                                     <div class="step-icon">📋</div>
                                     <div class="step-title">Issue PO</div>
                                     <div class="step-number">UC-03</div>
                                 </a>
-                                <a href="pr.html" class="workflow-step">
+                                <a href="/pr.html" class="workflow-step">
                                     <div class="step-icon">✓</div>
                                     <div class="step-title">PR Approval</div>
                                     <div class="step-number">UC-04</div>
                                 </a>
-                                <a href="quotation.html" class="workflow-step">
+                                <a href="/quotation.html" class="workflow-step">
                                     <div class="step-icon">⚖️</div>
                                     <div class="step-title">Compare Quotes</div>
                                     <div class="step-number">UC-05</div>
                                 </a>
-                                <a href="invoice.html" class="workflow-step">
+                                <a href="/invoice.html" class="workflow-step">
                                     <div class="step-icon">🧮</div>
                                     <div class="step-title">Calculate Cost</div>
                                     <div class="step-number">UC-06</div>
                                 </a>
-                                <a href="invoice.html" class="workflow-step">
+                                <a href="/invoice.html" class="workflow-step">
                                     <div class="step-icon">🏛️</div>
                                     <div class="step-title">Withholding Tax</div>
                                     <div class="step-number">UC-07</div>
                                 </a>
-                                <a href="invoice.html" class="workflow-step">
+                                <a href="/invoice.html" class="workflow-step">
                                     <div class="step-icon">💵</div>
                                     <div class="step-title">Generate Invoice</div>
                                     <div class="step-number">UC-08</div>
@@ -562,7 +580,13 @@
         ]).then(([header, sidebar]) => {
             document.getElementById('header-placeholder').innerHTML = header;
             document.getElementById('sidebar-placeholder').innerHTML = sidebar;
-            // Give sidebar time to setup its toggle, then attach Expand button
+            // Initialize any navigation functions
+            window.navigateTo = function(event, url) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.location.href = url;
+            };
+            window.navigateHeader = window.navigateTo;
             setTimeout(() => {
                 attachExpandButton();
             }, 50);
@@ -647,6 +671,20 @@
                         window.location.href = targetUrl;
                     }
                 };
+                // Also support touch for mobile devices
+                btn.addEventListener('touchstart', function(e) {
+                    this.style.opacity = '0.95';
+                }, false);
+                btn.addEventListener('touchend', function(e) {
+                    this.style.opacity = '1';
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const href = this.getAttribute('href');
+                    if (href && !href.startsWith('http')) {
+                        const targetUrl = href.startsWith('/') ? href : '/' + href;
+                        window.location.href = targetUrl;
+                    }
+                }, false);
             });
         }
     </script>

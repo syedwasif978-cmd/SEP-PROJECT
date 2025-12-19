@@ -2,10 +2,18 @@
   <div class="container">
     <h2 class="brand">Technical Solution Enterprise</h2>
     <nav class="header-nav">
-      <a href="/" onclick="event.preventDefault(); window.location.href='/';">Dashboard</a>
-      <a href="/vendors.html" onclick="event.preventDefault(); window.location.href='/vendors.html';">Vendors</a>
-      <a href="#" class="profile">Admin</a>
+      <a href="/dashboard_new.html" onclick="navigateHeader(event, '/dashboard_new.html');">Dashboard</a>
+      <a href="/vendors.html" onclick="navigateHeader(event, '/vendors.html');">Vendors</a>
+      <a href="#" class="profile" onclick="return false;">Admin</a>
     </nav>
   </div>
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 </header>
+
+<script>
+  function navigateHeader(event, url) {
+    event.preventDefault();
+    event.stopPropagation();
+    window.location.href = url;
+  }
+</script>
