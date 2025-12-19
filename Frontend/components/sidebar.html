@@ -4,23 +4,23 @@
     <span id="toggleLabel" style="margin-left: 8px; font-weight: 500;">Menu</span>
   </div>
   <ul id="sidebarMenu">
-    <li><a href="dashboard_new.html">📊 Dashboard</a></li>
+    <li><a href="/" onclick="event.preventDefault(); window.location.href='/';">📊 Dashboard</a></li>
     
     <li style="margin-top: 15px; padding: 8px 15px; color: #999; font-size: 12px; font-weight: 600; text-transform: uppercase;">New Workflow (UC-01 to UC-08)</li>
-    <li><a href="order.html">📝 Place Order (UC-01)</a></li>
-    <li><a href="quotation.html">💬 Quotation Management (UC-02, UC-05)</a></li>
-    <li><a href="po.html">📋 PO Issuance (UC-03)</a></li>
-    <li><a href="invoice.html">💵 Invoice Management (UC-08)</a></li>
+    <li><a href="/order.html" onclick="event.preventDefault(); window.location.href='/order.html';">📝 Place Order (UC-01)</a></li>
+    <li><a href="/quotation.html" onclick="event.preventDefault(); window.location.href='/quotation.html';">💬 Quotation Management (UC-02, UC-05)</a></li>
+    <li><a href="/po.html" onclick="event.preventDefault(); window.location.href='/po.html';">📋 PO Issuance (UC-03)</a></li>
+    <li><a href="/invoice.html" onclick="event.preventDefault(); window.location.href='/invoice.html';">💵 Invoice Management (UC-08)</a></li>
     
     <li style="margin-top: 15px; padding: 8px 15px; color: #999; font-size: 12px; font-weight: 600; text-transform: uppercase;">Legacy Modules (Being Refactored)</li>
-    <li><a href="client_confirmation.html">Client Confirmation</a></li>
-    <li><a href="pr.html">Procurement (PR)</a></li>
-    <li><a href="commercial.html">Commercial</a></li>
-    <li><a href="vendors.html">Vendors</a></li>
-    <li><a href="po.html">Purchase Orders (PO)</a></li>
-    <li><a href="warehouse.html">Warehouse</a></li>
-    <li><a href="accounts.html">Accounts / Invoices</a></li>
-    <li><a href="tax.html">Tax</a></li>
+    <li><a href="/client_confirmation.html" onclick="event.preventDefault(); window.location.href='/client_confirmation.html';">Client Confirmation</a></li>
+    <li><a href="/pr.html" onclick="event.preventDefault(); window.location.href='/pr.html';">Procurement (PR)</a></li>
+    <li><a href="/commercial.html" onclick="event.preventDefault(); window.location.href='/commercial.html';">Commercial</a></li>
+    <li><a href="/vendors.html" onclick="event.preventDefault(); window.location.href='/vendors.html';">Vendors</a></li>
+    <li><a href="/po.html" onclick="event.preventDefault(); window.location.href='/po.html';">Purchase Orders (PO)</a></li>
+    <li><a href="/warehouse.html" onclick="event.preventDefault(); window.location.href='/warehouse.html';">Warehouse</a></li>
+    <li><a href="/accounts.html" onclick="event.preventDefault(); window.location.href='/accounts.html';">Accounts / Invoices</a></li>
+    <li><a href="/tax.html" onclick="event.preventDefault(); window.location.href='/tax.html';">Tax</a></li>
   </ul>
 </nav>
 
@@ -53,35 +53,29 @@
 </style>
 
 <script>
-  // Use event delegation to handle toggle when sidebar is dynamically loaded
+  // Setup sidebar toggle immediately with direct onclick
   function setupSidebarToggle() {
     const toggle = document.querySelector('.sidebar-toggle');
-    if (toggle) {
-      toggle.addEventListener('click', function(e) {
+    const menu = document.getElementById('sidebarMenu');
+    const toggleText = document.getElementById('toggleText');
+    const label = document.getElementById('toggleLabel');
+    
+    if (toggle && menu && toggleText && label) {
+      toggle.onclick = function(e) {
         e.stopPropagation();
-        const menu = document.getElementById('sidebarMenu');
-        const toggleText = document.getElementById('toggleText');
-        const label = document.getElementById('toggleLabel');
+        menu.classList.toggle('collapsed');
         
-        if (menu && toggleText && label) {
-          menu.classList.toggle('collapsed');
-          
-          if (menu.classList.contains('collapsed')) {
-            toggleText.textContent = '▶';
-            label.textContent = 'Expand';
-          } else {
-            toggleText.textContent = '◀';
-            label.textContent = 'Menu';
-          }
+        if (menu.classList.contains('collapsed')) {
+          toggleText.textContent = '▶';
+          label.textContent = 'Expand';
+        } else {
+          toggleText.textContent = '◀';
+          label.textContent = 'Menu';
         }
-      }, false);
+      };
     }
   }
   
-  // Setup when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupSidebarToggle);
-  } else {
-    setupSidebarToggle();
-  }
+  // Call immediately
+  setupSidebarToggle();
 </script>

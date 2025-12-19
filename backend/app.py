@@ -65,6 +65,30 @@ def index():
     return app.send_static_file('dashboard_new.html')
 
 
+# Serve individual HTML pages (order.html, quotation.html, invoice.html, etc.)
+@app.route('/<path:filename>')
+def serve_page(filename):
+    # If filename has no extension, it might be a directory - try with .html
+    if not '.' in filename:
+        html_file = filename + '.html'
+        try:
+            return app.send_static_file(html_file)
+        except:
+            pass
+    
+    if filename.endswith('.html'):
+        try:
+            return app.send_static_file(filename)
+        except:
+            pass
+    
+    # For CSS, JS, images, etc, let Flask serve from static folder
+    try:
+        return app.send_static_file(filename)
+    except:
+        pass
+
+
 # SPA fallback: if a non-API route is requested, return the dashboard so
 # the frontend can handle client-side routing. For API routes we return
 # normal 404 responses.

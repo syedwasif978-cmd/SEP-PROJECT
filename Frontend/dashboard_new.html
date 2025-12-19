@@ -283,6 +283,7 @@
             font-size: 36px;
             margin-bottom: 10px;
             line-height: 1;
+            pointer-events: none;
         }
 
         .step-title {
@@ -290,12 +291,14 @@
             font-size: 13px;
             line-height: 1.3;
             margin-bottom: 6px;
+            pointer-events: none;
         }
 
         .step-number {
             font-size: 11px;
             opacity: 0.85;
             font-weight: 600;
+            pointer-events: none;
         }
 
         .empty-state {
@@ -547,29 +550,9 @@
             }
         });
 
-        // Sidebar toggle setup function
+        // Sidebar toggle is now handled in sidebar.html
         function setupSidebarToggle() {
-            const toggle = document.querySelector('.sidebar-toggle');
-            if (toggle) {
-                toggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const menu = document.getElementById('sidebarMenu');
-                    const toggleText = document.getElementById('toggleText');
-                    const label = document.getElementById('toggleLabel');
-                    
-                    if (menu && toggleText && label) {
-                        menu.classList.toggle('collapsed');
-                        
-                        if (menu.classList.contains('collapsed')) {
-                            toggleText.textContent = '▶';
-                            label.textContent = 'Expand';
-                        } else {
-                            toggleText.textContent = '◀';
-                            label.textContent = 'Menu';
-                        }
-                    }
-                }, false);
-            }
+            // Compatibility - sidebar manages its own toggle
         }
 
         // Load header and sidebar
@@ -579,8 +562,10 @@
         ]).then(([header, sidebar]) => {
             document.getElementById('header-placeholder').innerHTML = header;
             document.getElementById('sidebar-placeholder').innerHTML = sidebar;
-            setupSidebarToggle();
-            attachExpandButton();
+            // Give sidebar time to setup its toggle, then attach Expand button
+            setTimeout(() => {
+                attachExpandButton();
+            }, 50);
         }).catch(e => console.error('Error loading components:', e));
 
         // Load dashboard data
@@ -636,11 +621,33 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 loadDashboard();
+                setupWorkflowButtons();
                 setInterval(loadDashboard, 10000);
             });
         } else {
             loadDashboard();
+            setupWorkflowButtons();
             setInterval(loadDashboard, 10000);
+        }
+
+        // Setup workflow buttons to ensure they navigate reliably
+        function setupWorkflowButtons() {
+            const buttons = document.querySelectorAll('.workflow-step');
+            console.log('Found ' + buttons.length + ' workflow buttons');
+            buttons.forEach(btn => {
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const href = this.getAttribute('href');
+                    console.log('Button clicked, navigating to:', href);
+                    if (href && !href.startsWith('http')) {
+                        // Ensure we're using absolute paths with leading /
+                        const targetUrl = href.startsWith('/') ? href : '/' + href;
+                        console.log('Final URL:', targetUrl);
+                        window.location.href = targetUrl;
+                    }
+                };
+            });
         }
     </script>
 </body>
