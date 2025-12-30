@@ -3,3 +3,6 @@ Flask-SQLAlchemy==3.0.3
 Flask-Migrate==4.0.4
 marshmallow==3.19.0
 python-dotenv==1.0.0
+Flask
+Flask-SQLAlchemy
+cx_Oracle
